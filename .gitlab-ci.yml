@@ -1,0 +1,56 @@
+stages:
+  - cleanup_stage
+  - backendtry
+  - frontendtry
+
+cleanup:
+  stage: cleanup_stage
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - node
+  script:
+    - pm2 delete "server_backend" 2> /dev/null || true
+    - pm2 delete "server_frontend" 2> /dev/null || true
+    - sudo rm -rf /home/gitlab-runner/builds/*
+    - sudo chown -R gitlab-runner /home/gitlab-runner/builds/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+
+backend-build:
+  stage: backendtry
+  tags:
+    - node
+  before_script:
+    - pm2 delete "server_backend" 2> /dev/null || true
+    - cp /home/sop/sop-organizer-2/backend/.env ./backend
+    - cp /home/sop/sop-organizer-2/frontend/.env ./frontend
+  script:
+    - pm2 status
+    - cd backend
+    - npm install
+    - pm2 --name "server_backend" start npm -- start
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+frontend-build:
+  stage: frontendtry
+  variables: 
+    GIT_STRATEGY: clone
+  tags:
+    - vue
+  before_script:
+    - sudo chown -R gitlab-runner /home/gitlab-runner/builds/
+    - pm2 delete "server_frontend" 2> /dev/null || true
+    - cp /home/sop/sop-organizer-2/backend/.env ./backend
+    - cp /home/sop/sop-organizer-2/frontend/.env ./frontend
+  script:
+    - pm2 status
+    - cd frontend
+    - npm set-script prepare ''
+    - npm install
+    - npm run generate
+    - pm2 --name "server_frontend" start npm -- start
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
