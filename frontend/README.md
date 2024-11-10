@@ -7,7 +7,7 @@
 Create a `.env` file within the `frontend` folder. The file should define the following environment variables. Replace all `<description>` with the value described. Some fields are already filled out.
 
 ```text
-NUXT_ENV_API_URL="http://coms-402-sd-41.class.las.iastate.edu:8080"
+NUXT_ENV_API_URL=<link to server:port>
 NUXT_ENV_PORT="3000"
 ```
 
